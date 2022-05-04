@@ -8,6 +8,6 @@ pub struct Args {
     #[clap(short, long, default_value = "test_working.pdf")]
     pub output: String,
 
-    #[clap(short, long, default_value = "A4")]
-    pub pagesize: String,
+    #[clap(short, long)]
+    pub pagesize: Option<String>,
 }
