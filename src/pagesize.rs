@@ -41,12 +41,15 @@ impl PageSizeInMm {
             return page_size_map.get(pagesize).unwrap().to_owned();
         }
 
-        if pagesize.ends_with("^T") {
-            let format = pagesize.split('^').nth(0).unwrap();
-            if !page_size_map.contains_key(format) {
-                panic!("Format {} is not supported", format);
+        if pagesize.ends_with("^t") {
+            let pdf_format = pagesize.split('^').nth(0).unwrap();
+            if !page_size_map.contains_key(pdf_format) {
+                panic!(
+                    "PDF format {} is not recognized. Run -h/--help to see valid pagesize value.",
+                    pdf_format
+                );
             };
-            return page_size_map.get(format).unwrap().invert();
+            return page_size_map.get(pdf_format).unwrap().invert();
         }
 
         let float_regex_str = r"\d+(\.\d+)?";
@@ -68,13 +71,16 @@ impl PageSizeInMm {
                     "mm" => *size_num,
                     "cm" => size_num * 10.0,
                     "in" => size_num * 25.4,
-                    _ => panic!("Unsupported unit"),
+                    _ => panic!("Invalid unit"),
                 }
             };
             return PageSizeInMm(get_size_in_mm(width_str), get_size_in_mm(height_str));
         }
 
-        panic!("Pagesize {} is invalid", pagesize);
+        panic!(
+            "Pagesize value {} is invalid. Run -h/--help to see valid pagesize value.",
+            pagesize
+        );
     }
 
     pub fn invert(&self) -> Self {

@@ -14,7 +14,6 @@ enum ImageType {
 
 fn get_image_type(img_file_name: &str) -> ImageType {
     let extension_option = img_file_name.split('.').last();
-    println!("File Name {}, extension_option {:?}", img_file_name, extension_option);
     if let Some(extension) = extension_option {
         return match extension.to_lowercase().as_str() {
             "bmp" => ImageType::BMP,
@@ -35,7 +34,7 @@ pub fn read_image_from_file(img_file_name: &str) -> Result<Image> {
         ImageType::PNG => Ok(Image::try_from(PngDecoder::new(&mut img_file)?)?),
         ImageType::JPEG => Ok(Image::try_from(JpegDecoder::new(&mut img_file)?)?),
         ImageType::UNSUPPORTED => Err(anyhow!(
-            "Warning: Image file {} is not supported",
+            "Warning: Format of image file {} is not supported",
             img_file_name
         )),
     }
