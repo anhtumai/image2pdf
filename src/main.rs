@@ -7,7 +7,7 @@ use image::{
     image_object::get_image_dimension_in_mm, image_reader::read_image_from_file,
     image_transform::get_image_transform_for_page_size,
 };
-use pagesize::PageSize;
+use pagesize::PageSizeInMm;
 
 use std::fs::File;
 use std::io::BufWriter;
@@ -24,7 +24,7 @@ fn main() {
     } = args;
 
     let page_size_option = match pagesize {
-        Some(s) => Some(PageSize::new(&s)),
+        Some(s) => Some(PageSizeInMm::new(&s)),
         None => None,
     };
 
@@ -39,10 +39,10 @@ fn main() {
         let img = img_result.unwrap();
         if let Some(page_size) = &page_size_option {
             let image_transform = get_image_transform_for_page_size(&page_size, &img.image);
-            let PageSize { width, height } = page_size;
-            let (page, layer1) =
+            let PageSizeInMm(width, height) = page_size;
+            let (page, layer_index) =
                 doc.add_page(Mm(width.to_owned()), Mm(height.to_owned()), "Layer1");
-            let current_layer = doc.get_page(page).get_layer(layer1);
+            let current_layer = doc.get_page(page).get_layer(layer_index);
             img.add_to_layer(current_layer.clone(), image_transform);
         } else {
             let (image_width, image_height) = get_image_dimension_in_mm(&img.image);

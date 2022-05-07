@@ -1,17 +1,14 @@
 use printpdf::{xobject::ImageXObject, ImageTransform, Mm};
 
-use crate::pagesize::PageSize;
+use crate::pagesize::PageSizeInMm;
 
 use crate::image::image_object::get_image_dimension_in_mm;
 
 pub fn get_image_transform_for_page_size(
-    page_size: &PageSize,
+    page_size: &PageSizeInMm,
     image_object: &ImageXObject,
 ) -> ImageTransform {
-    let PageSize {
-        width: page_size_width,
-        height: page_size_height,
-    } = page_size;
+    let PageSizeInMm(page_size_width, page_size_height) = page_size;
     let page_size_ratio = page_size_width / page_size_height;
 
     let (image_width, image_height) = get_image_dimension_in_mm(image_object);
