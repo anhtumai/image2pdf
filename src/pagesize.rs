@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use colored::*;
 use regex::Regex;
 
 // PageSizeInMm(width, height)
@@ -45,8 +46,9 @@ impl PageSizeInMm {
             let pdf_format = pagesize.split('^').nth(0).unwrap();
             if !page_size_map.contains_key(pdf_format) {
                 panic!(
-                    "PDF format {} is not recognized. Run -h/--help to see valid pagesize value.",
-                    pdf_format
+                    "PDF format {} is not recognized. Run {} to see valid pagesize value.",
+                    pdf_format.blue().underline(),
+                    "-h/--help".cyan()
                 );
             };
             return page_size_map.get(pdf_format).unwrap().invert();
@@ -78,8 +80,9 @@ impl PageSizeInMm {
         }
 
         panic!(
-            "Pagesize value {} is invalid. Run -h/--help to see valid pagesize value.",
-            pagesize
+            "Pagesize value {} is invalid. Run {} to see valid pagesize value.",
+            pagesize.blue().underline(),
+            "-h/--help".cyan()
         );
     }
 

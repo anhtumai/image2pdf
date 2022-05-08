@@ -1,4 +1,5 @@
 use anyhow::{anyhow, Result};
+use colored::Colorize;
 
 use std::fs::File;
 
@@ -34,8 +35,8 @@ pub fn read_image_from_file(img_file_name: &str) -> Result<Image> {
         ImageType::PNG => Ok(Image::try_from(PngDecoder::new(&mut img_file)?)?),
         ImageType::JPEG => Ok(Image::try_from(JpegDecoder::new(&mut img_file)?)?),
         ImageType::UNSUPPORTED => Err(anyhow!(
-            "Warning: Format of image file {} is not supported",
-            img_file_name
+            "Format of image file {} is not supported. We only support BMP, PNG, JPEG and SVG",
+            img_file_name.blue().underline()
         )),
     }
 }
