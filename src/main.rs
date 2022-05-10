@@ -11,8 +11,8 @@ use std::io::BufWriter;
 
 use args::Args;
 use image::{
-    image_object::get_image_dimension_in_mm, image_reader::read_image_from_file,
-    image_transform::get_image_transform_for_page_size,
+    alpha_remover::RemoveAlpha, image_object::get_image_dimension_in_mm,
+    image_reader::read_image_from_file, image_transform::get_image_transform_for_page_size,
 };
 use pagesize::PageSizeInMm;
 
@@ -46,13 +46,14 @@ fn main() {
             );
             return;
         };
-        let img = img_result.unwrap();
+        let (color_type, mut img) = img_result.unwrap();
         if let Some(page_size) = &page_size_option {
             let image_transform = get_image_transform_for_page_size(&page_size, &img.image);
             let PageSizeInMm(width, height) = page_size;
             let (page, layer_index) =
                 doc.add_page(Mm(width.to_owned()), Mm(height.to_owned()), "Layer1");
             let current_layer = doc.get_page(page).get_layer(layer_index);
+            img.remove_alpha(color_type);
             img.add_to_layer(current_layer.clone(), image_transform);
         } else {
             let (original_image_width, original_image_height) =
@@ -71,6 +72,7 @@ fn main() {
                 "Layer1",
             );
             let current_layer = doc.get_page(page).get_layer(layer_index);
+            img.remove_alpha(color_type);
             img.add_to_layer(
                 current_layer.clone(),
                 ImageTransform {
