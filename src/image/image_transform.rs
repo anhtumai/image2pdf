@@ -2,7 +2,7 @@ use printpdf::{xobject::ImageXObject, ImageTransform, Mm};
 
 use crate::pagesize::PageSizeInMm;
 
-use crate::image::image_object::get_image_dimension_in_mm;
+use crate::image::image_x_object::get_image_dimension_in_mm;
 
 pub fn get_image_transform_for_page_size(
     page_size: &PageSizeInMm,

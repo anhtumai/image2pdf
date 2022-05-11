@@ -11,7 +11,7 @@ use std::io::BufWriter;
 
 use args::Args;
 use image::{
-    alpha_remover::RemoveAlpha, image_object::get_image_dimension_in_mm,
+    alpha_remover::RemoveAlpha, image_x_object::get_image_dimension_in_mm,
     image_reader::read_image_from_file, image_transform::get_image_transform_for_page_size,
 };
 use pagesize::PageSizeInMm;

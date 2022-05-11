@@ -1,9 +1,26 @@
 use printpdf::{image_crate::ColorType, ColorSpace, Image};
 
-fn remove_alpha_from_4_channel<T>(image_data: &Vec<T>, max_value: f64) -> Vec<T>
+trait Max {
+    fn max() -> Self;
+}
+
+impl Max for u8 {
+    fn max() -> u8 {
+        u8::MAX
+    }
+}
+
+impl Max for u16 {
+    fn max() -> u16 {
+        u16::MAX
+    }
+}
+
+fn remove_alpha_from_4_channel<T>(image_data: &Vec<T>) -> Vec<T>
 where
-    T: Clone + num::ToPrimitive + num::FromPrimitive,
+    T: Clone + num::ToPrimitive + num::FromPrimitive + Max,
 {
+    let max_value = T::max().to_f64().unwrap();
     let new_image_data = image_data
         .chunks(4)
         .map(|rgba| {
@@ -30,8 +47,7 @@ impl RemoveAlpha for Image {
         use ColorType::*;
         match color_type {
             Rgba8 | Bgra8 => {
-                let new_image_data =
-                    remove_alpha_from_4_channel(&self.image.image_data, u8::MAX as f64);
+                let new_image_data = remove_alpha_from_4_channel(&self.image.image_data);
                 self.image.image_data = new_image_data;
                 self.image.color_space = ColorSpace::Rgb;
             }
@@ -46,8 +62,7 @@ impl RemoveAlpha for Image {
                         return (x1 as u16) * 256 + (x2 as u16);
                     })
                     .collect();
-                let new_u16_image_data =
-                    remove_alpha_from_4_channel(&u16_image_data, u16::MAX as f64);
+                let new_u16_image_data = remove_alpha_from_4_channel(&u16_image_data);
 
                 let new_u8_image_data = new_u16_image_data
                     .into_iter()
