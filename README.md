@@ -13,7 +13,7 @@ Features:
 ### 1. With custom pagesize
 
 ```bash
-$> image2pdf assets/* --output output.pdf --pagesize 150mmx150mm
+image2pdf assets/* --output output.pdf --pagesize 150mmx150mm
 ```
 
 Output: [Pdf file](./assets/outputs/with_custom_pagesize.pdf)
@@ -21,7 +21,7 @@ Output: [Pdf file](./assets/outputs/with_custom_pagesize.pdf)
 ### 2. Without pagesize option
 
 ```bash
-$> image2pdf assets/* --output output.pdf
+image2pdf assets/* --output output.pdf
 ```
 
 Output: [Pdf file](./assets/outputs/without_pagesize.pdf)
@@ -29,7 +29,7 @@ Output: [Pdf file](./assets/outputs/without_pagesize.pdf)
 ### 3. With pagesize A4 option
 
 ```bash
-$> image2pdf assets/* --output output.pdf --pagesize A4
+image2pdf assets/* --output output.pdf --pagesize A4
 ```
 
 Output: [Pdf file](./assets/outputs/with_pagesize_A4.pdf)
@@ -37,7 +37,13 @@ Output: [Pdf file](./assets/outputs/with_pagesize_A4.pdf)
 ### 4. With pagesize A4 landscape option
 
 ```bash
-$> image2pdf assets/* --output output.pdf --pagesize A4^T
+image2pdf assets/* --output output.pdf --pagesize A4^T
 ```
 
 Output: [Pdf file](./assets/outputs/with_pagesize_A4_landscape.pdf)
+
+## Installation
+
+```bash
+cargo install image2pdf
+```
