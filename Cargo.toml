@@ -1,7 +1,6 @@
 [package]
 name = "image2pdf"
 version = "0.1.0"
-edition = "2021"
 authors = ["Tu Mai <tu.mai@outlook.com>"]
 license = "MIT"
 edition = "2021"
