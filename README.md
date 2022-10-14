@@ -1,5 +1,7 @@
 # Image2pdf
 
+Convert a list of image files to a single pdf file.
+
 Inspired from [Img2pdf project](https://github.com/josch/img2pdf).
 
 Features:
