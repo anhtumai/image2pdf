@@ -2,39 +2,65 @@ mod args;
 mod image;
 mod pagesize;
 
+use std::{
+    cmp::max,
+    fs::{File, OpenOptions},
+    io::BufWriter,
+    sync::OnceLock,
+    thread,
+    time::Duration,
+};
+
 use anyhow::anyhow;
 use clap::Parser;
 use colored::*;
+use indicatif::{ProgressBar, ProgressIterator};
 use printpdf::{ImageTransform, Mm, PdfDocument};
-use std::cmp::max;
-use std::fs::File;
-use std::io::BufWriter;
 
-use args::Args;
-use image::{
-    alpha_remover::RemoveAlpha, image_reader::read_image_from_file,
-    image_transform::get_image_transform_for_page_size, image_x_object::get_image_dimension_in_mm,
+use crate::{
+    args::Args,
+    image::{
+        alpha_remover::RemoveAlpha, image_reader::read_image_from_file,
+        image_transform::get_image_transform_for_page_size,
+        image_x_object::get_image_dimension_in_mm,
+    },
+    pagesize::PageSizeInMm,
 };
-use pagesize::PageSizeInMm;
 
 const MIN_WIDTH_IN_MM: Mm = Mm(210.0);
 const MIN_HEIGHT_IN_MM: Mm = Mm(297.0);
 
 fn main() -> anyhow::Result<()> {
     let args: Args = Args::parse();
-    println!("{:?}", args);
+    #[cfg(debug_assertions)]
+    eprintln!("{:#?}", args);
     let Args {
-        input: input_img_files,
+        input: mut input_img_files,
         output: output_pdf_file,
         pagesize: pagesize_option,
+        human_sorting,
     } = args;
+    if human_sorting {
+        input_img_files.sort_by(|a, b| {
+            let a = a.to_string_lossy();
+            let b = b.to_string_lossy();
+            human_sort::compare(&a, &b)
+        });
+    }
+    let input_img_files = input_img_files; // remove mutability
+    eprintln!("Pages: {:?}", input_img_files);
+
+    let output_file: File = OpenOptions::new()
+        .write(true)
+        .create_new(true)
+        .open(&output_pdf_file)?;
 
     let doc = PdfDocument::empty("Random Document Title");
 
-    for img_file_name in input_img_files {
+    for img_file_name in input_img_files.into_iter().progress() {
         let (color_type, mut img) = read_image_from_file(&img_file_name).map_err(|e| {
             anyhow!(
-                "{}: cannot read file {}. {}: {}",
+                "\n{}: cannot read file {}.\n{}: {}",
                 "Warning".yellow(),
                 img_file_name.to_string_lossy().blue().underline(),
                 "Error".red(),
@@ -78,6 +104,24 @@ fn main() -> anyhow::Result<()> {
         }
     }
 
-    doc.save(&mut BufWriter::new(File::create(output_pdf_file)?))?;
+    let spinner = ProgressBar::new_spinner().with_message("Saving PDF...");
+    let stop_spinner = OnceLock::<()>::new();
+    thread::scope(|s| -> anyhow::Result<()> {
+        s.spawn(|| loop {
+            if stop_spinner.get().is_some() {
+                break;
+            }
+            spinner.tick();
+            thread::sleep(Duration::from_millis(100));
+        });
+        doc.save(&mut BufWriter::new(output_file))?;
+        stop_spinner.set(()).unwrap();
+        Ok(())
+    })?;
+    spinner.finish_and_clear();
+    eprintln!(
+        "PDF saved to {}",
+        output_pdf_file.to_string_lossy().green().underline()
+    );
     Ok(())
 }

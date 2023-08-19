@@ -15,4 +15,7 @@ pub struct Args {
     /// The page size of the output file
     #[arg(short, long)]
     pub pagesize: Option<PageSizeInMm>,
+    /// Sort the input files by human rules (e.g. 1, 2, 10 instead of 1, 10, 2)
+    #[arg(short = 's', long = "human-sorting")]
+    pub human_sorting: bool,
 }
