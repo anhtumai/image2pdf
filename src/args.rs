@@ -12,7 +12,7 @@ pub struct Args {
     /// The output file
     #[arg(short, long, default_value = "output.pdf")]
     pub output: PathBuf,
-    /// The page size of the output file
+    /// The page size of the output file (for landscape add "^T") [A0-A6, B0-B6, Jb0-Jb6, Letter, Legal, Tabloid]
     #[arg(short, long)]
     pub pagesize: Option<PageSizeInMm>,
     /// Sort the input files by human rules (e.g. 1, 2, 10 instead of 1, 10, 2)
