@@ -13,5 +13,5 @@ pub fn get_image_dimension_in_mm(image_object: &ImageXObject) -> (f64, f64) {
 
     let image_width = pixel_to_mm(*image_width_in_px);
     let image_height = pixel_to_mm(*image_height_in_px);
-    return (image_width, image_height);
+    (image_width, image_height)
 }

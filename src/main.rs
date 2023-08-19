@@ -11,8 +11,8 @@ use std::io::BufWriter;
 
 use args::Args;
 use image::{
-    alpha_remover::RemoveAlpha, image_x_object::get_image_dimension_in_mm,
-    image_reader::read_image_from_file, image_transform::get_image_transform_for_page_size,
+    alpha_remover::RemoveAlpha, image_reader::read_image_from_file,
+    image_transform::get_image_transform_for_page_size, image_x_object::get_image_dimension_in_mm,
 };
 use pagesize::PageSizeInMm;
 
@@ -27,10 +27,7 @@ fn main() {
         pagesize,
     } = args;
 
-    let page_size_option = match pagesize {
-        Some(s) => Some(PageSizeInMm::new(&s)),
-        None => None,
-    };
+    let page_size_option = pagesize.as_deref().map(PageSizeInMm::new);
 
     let doc = PdfDocument::empty("Random Document Title");
 
@@ -48,7 +45,7 @@ fn main() {
         };
         let (color_type, mut img) = img_result.unwrap();
         if let Some(page_size) = &page_size_option {
-            let image_transform = get_image_transform_for_page_size(&page_size, &img.image);
+            let image_transform = get_image_transform_for_page_size(page_size, &img.image);
             let PageSizeInMm(width, height) = page_size;
             let (page, layer_index) =
                 doc.add_page(Mm(width.to_owned()), Mm(height.to_owned()), "Layer1");

@@ -43,7 +43,7 @@ impl PageSizeInMm {
         }
 
         if pagesize.ends_with("^t") {
-            let pdf_format = pagesize.split('^').nth(0).unwrap();
+            let pdf_format = pagesize.split('^').next().unwrap();
             if !page_size_map.contains_key(pdf_format) {
                 panic!(
                     "PDF format {} is not recognized. Run {} to see valid pagesize value.",

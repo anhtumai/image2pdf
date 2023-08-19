@@ -10,49 +10,49 @@ use printpdf::{
 };
 
 enum ImageType {
-    BMP,
-    JPEG,
-    PNG,
-    UNSUPPORTED,
+    Bmp,
+    Jpeg,
+    Png,
+    Unsupported,
 }
 
 fn get_image_type(img_file_name: &str) -> ImageType {
     let extension_option = img_file_name.split('.').last();
     if let Some(extension) = extension_option {
         return match extension.to_lowercase().as_str() {
-            "bmp" => ImageType::BMP,
-            "png" => ImageType::PNG,
-            "jpg" => ImageType::JPEG,
-            "jpeg" => ImageType::JPEG,
-            _ => ImageType::UNSUPPORTED,
+            "bmp" => ImageType::Bmp,
+            "png" => ImageType::Png,
+            "jpg" => ImageType::Jpeg,
+            "jpeg" => ImageType::Jpeg,
+            _ => ImageType::Unsupported,
         };
     }
-    ImageType::UNSUPPORTED
+    ImageType::Unsupported
 }
 
 pub fn read_image_from_file(img_file_name: &str) -> Result<(ColorType, Image)> {
-    let mut img_file = File::open(&img_file_name)?;
+    let mut img_file = File::open(img_file_name)?;
 
     match get_image_type(img_file_name) {
-        ImageType::BMP => {
+        ImageType::Bmp => {
             let bmp_decoder = BmpDecoder::new(&mut img_file)?;
             let color_type = bmp_decoder.color_type();
             let image = Image::try_from(bmp_decoder)?;
-            return Ok((color_type, image));
+            Ok((color_type, image))
         }
-        ImageType::PNG => {
+        ImageType::Png => {
             let png_decoder = PngDecoder::new(&mut img_file)?;
             let color_type = png_decoder.color_type();
             let image = Image::try_from(png_decoder)?;
-            return Ok((color_type, image));
+            Ok((color_type, image))
         }
-        ImageType::JPEG => {
+        ImageType::Jpeg => {
             let jpeg_decoder = JpegDecoder::new(&mut img_file)?;
             let color_type = jpeg_decoder.color_type();
             let image = Image::try_from(jpeg_decoder)?;
-            return Ok((color_type, image));
+            Ok((color_type, image))
         }
-        ImageType::UNSUPPORTED => Err(anyhow!(
+        ImageType::Unsupported => Err(anyhow!(
             "Format of image file {} is not supported. We only support BMP, PNG, JPEG and SVG",
             img_file_name.blue().underline()
         )),
