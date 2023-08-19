@@ -1,13 +1,18 @@
+use std::path::PathBuf;
+
 use clap::Parser;
 
+use crate::pagesize::PageSizeInMm;
+
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 pub struct Args {
-    pub input: Vec<String>,
-
-    #[clap(short, long, default_value = "test_working.pdf")]
-    pub output: String,
-
-    #[clap(short, long)]
-    pub pagesize: Option<String>,
+    /// The input file(s)
+    pub input: Vec<PathBuf>,
+    /// The output file
+    #[arg(short, long, default_value = "output.pdf")]
+    pub output: PathBuf,
+    /// The page size of the output file
+    #[arg(short, long)]
+    pub pagesize: Option<PageSizeInMm>,
 }

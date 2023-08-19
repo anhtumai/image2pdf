@@ -1,10 +1,10 @@
-use printpdf::{scale::Px, xobject::ImageXObject};
+use printpdf::{scale::Px, xobject::ImageXObject, Mm};
 
-fn pixel_to_mm(pixel: usize) -> f64 {
-    (pixel as f64) * 0.084666667
+fn pixel_to_mm(pixel: usize) -> Mm {
+    Mm((pixel as f64) * 0.084666667)
 }
 
-pub fn get_image_dimension_in_mm(image_object: &ImageXObject) -> (f64, f64) {
+pub fn get_image_dimension_in_mm(image_object: &ImageXObject) -> (Mm, Mm) {
     let ImageXObject {
         width: Px(image_width_in_px),
         height: Px(image_height_in_px),
