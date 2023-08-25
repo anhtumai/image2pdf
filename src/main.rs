@@ -6,7 +6,7 @@ use std::{
     cmp::max,
     fs::{File, OpenOptions},
     io::BufWriter,
-    sync::OnceLock,
+    sync::Once,
     thread,
     time::Duration,
 };
@@ -60,7 +60,7 @@ fn main() -> anyhow::Result<()> {
     for img_file_name in input_img_files.into_iter().progress() {
         let (color_type, mut img) = read_image_from_file(&img_file_name).map_err(|e| {
             anyhow!(
-                "\n{}: cannot read file {}.\n{}: {}",
+                "\n[{}] cannot read file {}.\n{}: {}",
                 "Warning".yellow(),
                 img_file_name.to_string_lossy().blue().underline(),
                 "Error".red(),
@@ -105,23 +105,22 @@ fn main() -> anyhow::Result<()> {
     }
 
     let spinner = ProgressBar::new_spinner().with_message("Saving PDF...");
-    let stop_spinner = OnceLock::<()>::new();
+    let stop_spinner = Once::new();
     thread::scope(|s| -> anyhow::Result<()> {
         s.spawn(|| loop {
-            if stop_spinner.get().is_some() {
+            if stop_spinner.is_completed() {
                 break;
             }
             spinner.tick();
             thread::sleep(Duration::from_millis(100));
         });
         doc.save(&mut BufWriter::new(output_file))?;
-        stop_spinner.set(()).unwrap();
+        stop_spinner.call_once(|| ());
+        spinner.finish_and_clear();
+        eprintln!(
+            "PDF saved to {}",
+            output_pdf_file.to_string_lossy().green().underline()
+        );
         Ok(())
-    })?;
-    spinner.finish_and_clear();
-    eprintln!(
-        "PDF saved to {}",
-        output_pdf_file.to_string_lossy().green().underline()
-    );
-    Ok(())
+    })
 }

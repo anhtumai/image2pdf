@@ -53,7 +53,7 @@ pub fn read_image_from_file<P: AsRef<Path>>(img_file_name: P) -> Result<(ColorTy
             Ok((color_type, image))
         }
         ImageType::Unsupported(img_file_name) => Err(anyhow!(
-            "Format of image file {} is not supported. We only support BMP, PNG, JPEG and SVG",
+            "Format of image file {} is not supported. We only support BMP, PNG and JPEG",
             img_file_name.blue().underline()
         )),
     }
