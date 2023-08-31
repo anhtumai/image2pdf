@@ -1,93 +1,140 @@
-use std::collections::HashMap;
+use std::str::FromStr;
 
+use anyhow::anyhow;
 use colored::*;
+use printpdf::Mm;
 use regex::Regex;
 
-// PageSizeInMm(width, height)
-#[derive(Debug, Clone)]
-pub struct PageSizeInMm(pub f64, pub f64);
-
-impl PageSizeInMm {
-    pub fn new(pagesize: &str) -> Self {
-        let pagesize = pagesize.to_lowercase().trim().to_string();
-        let pagesize = pagesize.as_str();
-        let page_size_map = HashMap::from([
-            ("a0", PageSizeInMm(841.0, 1189.0)),
-            ("a1", PageSizeInMm(594.0, 841.0)),
-            ("a2", PageSizeInMm(420.0, 594.0)),
-            ("a3", PageSizeInMm(297.0, 420.0)),
-            ("a4", PageSizeInMm(210.0, 297.0)),
-            ("a5", PageSizeInMm(148.0, 210.0)),
-            ("a6", PageSizeInMm(105.0, 148.0)),
-            ("b0", PageSizeInMm(1000.0, 1414.0)),
-            ("b1", PageSizeInMm(707.0, 1000.0)),
-            ("b2", PageSizeInMm(500.0, 707.0)),
-            ("b3", PageSizeInMm(353.0, 500.0)),
-            ("b4", PageSizeInMm(250.0, 353.0)),
-            ("b5", PageSizeInMm(176.0, 250.0)),
-            ("b6", PageSizeInMm(125.0, 176.0)),
-            ("jb0", PageSizeInMm(1030.0, 456.0)),
-            ("jb1", PageSizeInMm(728.0, 1030.0)),
-            ("jb2", PageSizeInMm(515.0, 728.0)),
-            ("jb3", PageSizeInMm(364.0, 515.0)),
-            ("jb4", PageSizeInMm(257.0, 364.0)),
-            ("jb5", PageSizeInMm(182.0, 257.0)),
-            ("jb6", PageSizeInMm(128.0, 182.0)),
-            ("letter", PageSizeInMm(215.9, 279.4)),
-            ("legal", PageSizeInMm(215.9, 355.6)),
-            ("tabloid", PageSizeInMm(279.4, 431.8)),
-        ]);
-
-        if page_size_map.contains_key(pagesize) {
-            return page_size_map.get(pagesize).unwrap().to_owned();
+macro_rules! page_size_formats {
+    ($($name:ident => ($str:literal, $width:literal, $height:literal)),* $(,)?) => {
+        #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash)]
+        pub enum PageSizeFormat {
+            $($name),*
         }
 
-        if pagesize.ends_with("^t") {
-            let pdf_format = pagesize.split('^').nth(0).unwrap();
-            if !page_size_map.contains_key(pdf_format) {
-                panic!(
-                    "PDF format {} is not recognized. Run {} to see valid pagesize value.",
-                    pdf_format.blue().underline(),
-                    "-h/--help".cyan()
-                );
-            };
-            return page_size_map.get(pdf_format).unwrap().invert();
+        impl FromStr for PageSizeFormat {
+            type Err = ();
+
+            fn from_str(s: &str) -> Result<Self, Self::Err> {
+                match s.to_lowercase().trim().trim_end_matches("^t") {
+                    $($str => Ok(PageSizeFormat::$name),)*
+                    _ => Err(()),
+                }
+            }
+        }
+
+        impl PageSizeFormat {
+            pub fn to_page_size(self) -> PageSizeInMm {
+                match self {
+                    $(PageSizeFormat::$name => PageSizeInMm {
+                        width: Mm($width),
+                        height: Mm($height),
+                    }),*
+                }
+            }
+        }
+
+        impl From<PageSizeFormat> for PageSizeInMm {
+            #[inline(always)]
+            fn from(page_size_format: PageSizeFormat) -> Self {
+                page_size_format.to_page_size()
+            }
+        }
+    };
+}
+
+page_size_formats! {
+    A0 => ("a0", 841.0, 1189.0),
+    A1 => ("a1", 594.0, 841.0),
+    A2 => ("a2", 420.0, 594.0),
+    A3 => ("a3", 297.0, 420.0),
+    A4 => ("a4", 210.0, 297.0),
+    A5 => ("a5", 148.0, 210.0),
+    A6 => ("a6", 105.0, 148.0),
+    B0 => ("b0", 1000.0, 1414.0),
+    B1 => ("b1", 707.0, 1000.0),
+    B2 => ("b2", 500.0, 707.0),
+    B3 => ("b3", 353.0, 500.0),
+    B4 => ("b4", 250.0, 353.0),
+    B5 => ("b5", 176.0, 250.0),
+    B6 => ("b6", 125.0, 176.0),
+    Jb0 => ("jb0", 1030.0, 456.0),
+    Jb1 => ("jb1", 728.0, 1030.0),
+    Jb2 => ("jb2", 515.0, 728.0),
+    Jb3 => ("jb3", 364.0, 515.0),
+    Jb4 => ("jb4", 257.0, 364.0),
+    Jb5 => ("jb5", 182.0, 257.0),
+    Jb6 => ("jb6", 128.0, 182.0),
+    Letter => ("letter", 215.9, 279.4),
+    Legal => ("legal", 215.9, 355.6),
+    Tabloid => ("tabloid", 279.4, 431.8),
+}
+
+#[derive(Debug, Clone, Copy)]
+pub struct PageSizeInMm {
+    pub width: Mm,
+    pub height: Mm,
+}
+
+impl PageSizeInMm {
+    pub fn invert(self) -> Self {
+        let PageSizeInMm { width, height } = self;
+        PageSizeInMm {
+            width: height,
+            height: width,
+        }
+    }
+}
+
+impl FromStr for PageSizeInMm {
+    type Err = anyhow::Error;
+
+    fn from_str(pagesize: &str) -> Result<Self, Self::Err> {
+        let pagesize = pagesize.to_lowercase();
+        let pagesize = pagesize.trim();
+        let pagesize_format = pagesize.parse::<PageSizeFormat>().ok();
+
+        if let Some(pagesize_format) = pagesize_format {
+            if pagesize.ends_with("^t") {
+                return Ok(pagesize_format.to_page_size().invert());
+            }
+            return Ok(pagesize_format.into());
         }
 
         let float_regex_str = r"\d+(\.\d+)?";
         let float_size_regex_str = format!("{}(?:mm|cm|in)", float_regex_str);
         let pagesize_regex_str = format!("^{}x{}$", float_size_regex_str, float_size_regex_str);
 
-        let customized_pagesize_regex = Regex::new(pagesize_regex_str.as_str()).unwrap();
+        let customized_pagesize_regex = Regex::new(&pagesize_regex_str).unwrap();
 
         if customized_pagesize_regex.is_match(pagesize) {
             let mut pagesize_split = pagesize.split('x');
             let width_str = pagesize_split.next().unwrap();
             let height_str = pagesize_split.next().unwrap();
 
-            let get_size_in_mm = |size_str: &str| {
-                let size_num = &size_str[..size_str.len() - 2].parse::<f64>().unwrap();
+            fn get_size_in_mm(size_str: &str) -> anyhow::Result<f64> {
+                let size_num = size_str[..size_str.len() - 2].parse::<f64>().unwrap();
                 let size_unit = &size_str[(size_str.len() - 2)..];
 
                 match size_unit {
-                    "mm" => *size_num,
-                    "cm" => size_num * 10.0,
-                    "in" => size_num * 25.4,
-                    _ => panic!("Invalid unit"),
+                    "mm" => Ok(size_num),
+                    "cm" => Ok(size_num * 10.0),
+                    "in" => Ok(size_num * 25.4),
+                    _ => Err(anyhow!(
+                        "Invalid unit `{size_unit}`. Possible units: `mm`, `cm` and `in`."
+                    )),
                 }
-            };
-            return PageSizeInMm(get_size_in_mm(width_str), get_size_in_mm(height_str));
+            }
+            return Ok(PageSizeInMm {
+                width: Mm(get_size_in_mm(width_str)?),
+                height: Mm(get_size_in_mm(height_str)?),
+            });
         }
 
-        panic!(
+        anyhow::bail!(
             "Pagesize value {} is invalid. Run {} to see valid pagesize value.",
             pagesize.blue().underline(),
             "-h/--help".cyan()
         );
-    }
-
-    pub fn invert(&self) -> Self {
-        let PageSizeInMm(width, height) = *self;
-        PageSizeInMm(height, width)
     }
 }

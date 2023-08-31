@@ -1,13 +1,21 @@
+use std::path::PathBuf;
+
 use clap::Parser;
 
+use crate::pagesize::PageSizeInMm;
+
 #[derive(Parser, Debug)]
-#[clap(author, version, about, long_about = None)]
+#[command(author, version, about, long_about = None)]
 pub struct Args {
-    pub input: Vec<String>,
-
-    #[clap(short, long, default_value = "test_working.pdf")]
-    pub output: String,
-
-    #[clap(short, long)]
-    pub pagesize: Option<String>,
+    /// The input file(s)
+    pub input: Vec<PathBuf>,
+    /// The output file
+    #[arg(short, long, default_value = "output.pdf")]
+    pub output: PathBuf,
+    /// The page size of the output file (for landscape add "^T") [A0-A6, B0-B6, Jb0-Jb6, Letter, Legal, Tabloid]
+    #[arg(short, long)]
+    pub pagesize: Option<PageSizeInMm>,
+    /// Sort the input files by human rules (e.g. 1, 2, 10 instead of 1, 10, 2)
+    #[arg(short = 's', long = "human-sorting")]
+    pub human_sorting: bool,
 }
