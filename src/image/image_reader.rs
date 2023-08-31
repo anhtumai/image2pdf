@@ -21,8 +21,7 @@ fn get_image_type(img_file_name: &str) -> ImageType<'_> {
         return match extension.to_lowercase().as_str() {
             "bmp" => ImageType::Bmp,
             "png" => ImageType::Png,
-            "jpg" => ImageType::Jpeg,
-            "jpeg" => ImageType::Jpeg,
+            "jpg" | "jpeg" => ImageType::Jpeg,
             _ => ImageType::Unsupported(img_file_name),
         };
     }
